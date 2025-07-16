@@ -14,8 +14,9 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
 endif()
 
-# 添加项目子目录
-add_subdirectory(AppFrame)       
+include(cmake/ProjectSetting.cmake)
 
-# 安装配置
-include(cmake/Config.cmake)
+# 添加项目子目录
+add_subdirectory(App)  
+add_subdirectory(AppFrame)     
+
