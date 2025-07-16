@@ -1,0 +1,15 @@
+# 构建目录
+build/
+
+# 编译生成文件
+*.o
+*.a
+*.so
+
+# 可执行文件
+bin/
+
+# IDE配置
+.vscode/
+.idea/
+*.user
