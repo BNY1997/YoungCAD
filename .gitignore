@@ -12,3 +12,5 @@ bin/
 .vscode/
 .idea/
 *.user
+.vs/
+3rdParty/
