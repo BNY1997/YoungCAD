@@ -14,3 +14,4 @@ bin/
 *.user
 .vs/
 3rdParty/
+.*/

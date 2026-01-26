@@ -1,5 +1,5 @@
 project(
-    APP              # 项目名称
+    YCADAPP              # 项目名称
     VERSION 1.0.0          # 版本号
     LANGUAGES CXX          # 项目语言(C/CXX)
 )
@@ -27,7 +27,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Qt5::Core
     Qt5::Widgets
     Qt5::Gui
+    osgd
+    osgviewerd
 )
+
 
 
 
