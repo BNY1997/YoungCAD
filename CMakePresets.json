@@ -1,0 +1,135 @@
+{
+  "version": 8,
+  "configurePresets": [
+    {
+      "name": "windows-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "installDir": "${sourceDir}/out/install/${presetName}",
+      "cacheVariables": {
+        "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_CXX_STANDARD_REQUIRED": true,
+        "CMAKE_CXX_EXTENSIONS": false,
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+        "CMAKE_VS_OPEN_FOLDER_AT_STARTUP": true
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "x64-debug",
+      "displayName": "Windows x64 Debug (VS2026)",
+      "description": "使用MSVC x64工具集进行调试构建",
+      "inherits": "windows-base",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "toolset": {
+        "value": "host=x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "hostOS": [ "Windows" ],
+          "intelliSenseMode": "windows-msvc-x64"
+        }
+      }
+    },
+    {
+      "name": "x64-release",
+      "displayName": "Windows x64 Release (VS2026)",
+      "description": "使用MSVC x64工具集进行发布构建",
+      "inherits": "windows-base",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "toolset": {
+        "value": "host=x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}"
+      }
+    },
+    {
+      "name": "x64-clang-debug",
+      "displayName": "Windows x64 Clang Debug (VS2026)",
+      "description": "使用Clang-cl工具链进行调试",
+      "inherits": "x64-debug",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang-cl",
+        "CMAKE_CXX_COMPILER": "clang-cl",
+        "CMAKE_CXX_FLAGS": "/clang:-fcoroutines-ts"
+      }
+    },
+    {
+      "name": "arm64-debug",
+      "displayName": "Windows ARM64 Debug (VS2026)",
+      "description": "ARM64架构调试构建",
+      "inherits": "windows-base",
+      "architecture": {
+        "value": "ARM64",
+        "strategy": "external"
+      },
+      "toolset": {
+        "value": "host=ARM64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "debug",
+      "configurePreset": "x64-debug",
+      "displayName": "构建 x64 调试版",
+      "description": "使用调试配置构建"
+    },
+    {
+      "name": "release",
+      "configurePreset": "x64-release",
+      "displayName": "构建 x64 发布版",
+      "description": "使用发布配置构建"
+    },
+    {
+      "name": "clang-debug",
+      "configurePreset": "x64-clang-debug",
+      "displayName": "构建 Clang 调试版",
+      "description": "使用Clang-cl工具链构建调试版"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "test-debug",
+      "configurePreset": "x64-debug",
+      "displayName": "测试调试构建",
+      "description": "运行调试版本的测试",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": false
+      }
+    }
+  ],
+  "vendor": {
+    "microsoft.com/VisualStudioSettings/CMake/1.0": {
+      "automaticConfigurationReload": true,
+      "enableHostIntegration": true
+    }
+  }
+}

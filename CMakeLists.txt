@@ -14,6 +14,8 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
 endif()
 
+add_definitions(-D_OPENTHREADS_ATOMIC_USE_MUTEX)
+
 # 按配置类型设置（Debug/Release）
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/bin/Debug)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/lib/Debug)
@@ -25,12 +27,9 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/lib/Release)
 
 include(cmake/ProjectSetting.cmake)
 
+include(cmake/FindOSG.cmake)
+
 # 添加项目子目录
 add_subdirectory(App)  
 add_subdirectory(AppFrame)     
-
-
-FILE(GLOB OSG_DLLS ${OSG_DIR}/bin/*.dll)
-FILE(COPY ${OSG_DLLS} DESTINATION ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE})
-
 

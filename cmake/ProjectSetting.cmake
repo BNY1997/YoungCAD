@@ -1,5 +1,5 @@
-
 list(APPEND CMAKE_PREFIX_PATH "D:/Qt/Qt5.14.2/5.14.2/msvc2017_64/bin")
+list(APPEND CMAKE_PREFIX_PATH "D:/Qt/Qt5.14.2/5.14.2/msvc2017_64/lib/cmake")
 list(APPEND CMAKE_PREFIX_PATH "D:/YoungCAD/3rdParty/OSGD/cmake")
 list(APPEND CMAKE_PREFIX_PATH "D:/YoungCAD/3rdParty/OSGD/bin")
 
