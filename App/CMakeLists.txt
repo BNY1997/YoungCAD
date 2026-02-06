@@ -5,16 +5,24 @@ project(
 )
 
 set(APP_INCLUDE_FILES
-
+    include/MainWindow.h
 )
 
 set(APP_SOURCE_FILES
+    source/MainWindow.cpp
     source/main.cpp
+    source/MainWindow.ui
 )
 
 add_executable(
     ${PROJECT_NAME}
     ${APP_SOURCE_FILES}
+)
+target_include_directories(${PROJECT_NAME}
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include  # 其他项目可以包含
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/source   # 仅内部使用
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
