@@ -14,6 +14,7 @@ file(GLOB_RECURSE PLATFORM_SOURCES
 	"${PLATFORM_SOURCE_DIR}/*.cpp"
 	"${PLATFORM_SOURCE_DIR}/*.cxx"
 	"${PLATFORM_SOURCE_DIR}/*.c"
+	"${PLATFORM_SOURCE_DIR}/*.ui"
 )
 
 file(GLOB_RECURSE PLATFORM_HEADERS
@@ -35,7 +36,10 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${PLATFORM_INCLUDE_DIR})
+target_include_directories(${PROJECT_NAME} PRIVATE 
+${PLATFORM_INCLUDE_DIR}
+${COMMON_INCLUDE_DIRS}
+)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE 
     Qt5::Core 
@@ -50,6 +54,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     OSG::DB 
     OSG::UTIL
     OSG::GA
+    Common::Common
 )
 
 if(WIN32 AND Qt5_DIR)

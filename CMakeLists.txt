@@ -62,4 +62,4 @@ find_package(OSG REQUIRED)
 
 # 6. 添加子文件夹
 add_subdirectory(Platform)                    # SiteOffice最底层的基础设施工具模块
-
+add_subdirectory(Common)

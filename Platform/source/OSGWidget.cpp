@@ -2,6 +2,7 @@
 #include "PickHandler.h"
 
 #include <osg/Camera>
+#include <osg/Node>
 
 #include <osg/DisplaySettings>
 #include <osg/Geode>
@@ -96,25 +97,25 @@ OSGWidget::OSGWidget(QWidget* parent,
 	, selectionActive_(false)
 	, selectionFinished_(true)
 {
-	osg::Sphere* sphere = new osg::Sphere(osg::Vec3(0.f, 0.f, 0.f), 0.25f);
-	osg::ShapeDrawable* sd = new osg::ShapeDrawable(sphere);
-	sd->setColor(osg::Vec4(1.f, 0.f, 0.f, 1.f));
-	sd->setName("A nice sphere");
+	//osg::Sphere* sphere = new osg::Sphere(osg::Vec3(0.f, 0.f, 0.f), 0.25f);
+	//osg::ShapeDrawable* sd = new osg::ShapeDrawable(sphere);
+	//sd->setColor(osg::Vec4(1.f, 0.f, 0.f, 1.f));
+	//sd->setName("A nice sphere");
 
-	osg::Geode* geode = new osg::Geode;
-	geode->addDrawable(sd);
+	//osg::Geode* geode = new osg::Geode;
+	//geode->addDrawable(sd);
 
-	// Set material for basic lighting and enable depth tests. Else, the sphere
-	// will suffer from rendering errors.
-	{
-		osg::StateSet* stateSet = geode->getOrCreateStateSet();
-		osg::Material* material = new osg::Material;
+	//// Set material for basic lighting and enable depth tests. Else, the sphere
+	//// will suffer from rendering errors.
+	//{
+	//	osg::StateSet* stateSet = geode->getOrCreateStateSet();
+	//	osg::Material* material = new osg::Material;
 
-		material->setColorMode(osg::Material::AMBIENT_AND_DIFFUSE);
+	//	material->setColorMode(osg::Material::AMBIENT_AND_DIFFUSE);
 
-		stateSet->setAttributeAndModes(material, osg::StateAttribute::ON);
-		stateSet->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
-	}
+	//	stateSet->setAttributeAndModes(material, osg::StateAttribute::ON);
+	//	stateSet->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
+	//}
 
 	float aspectRatio = static_cast<float>(this->width() / 2) / static_cast<float>(this->height());
 	auto pixelRatio = this->devicePixelRatio();
@@ -127,7 +128,7 @@ OSGWidget::OSGWidget(QWidget* parent,
 
 	osgViewer::View* view = new osgViewer::View;
 	view->setCamera(camera);
-	view->setSceneData(geode);
+	//view->setSceneData(geode);
 	view->addEventHandler(new osgViewer::StatsHandler);
 #ifdef WITH_PICK_HANDLER
 	view->addEventHandler(new PickHandler(this->devicePixelRatio()));
@@ -148,7 +149,7 @@ OSGWidget::OSGWidget(QWidget* parent,
 
 	osgViewer::View* sideView = new osgViewer::View;
 	sideView->setCamera(sideCamera);
-	sideView->setSceneData(geode);
+	//sideView->setSceneData(geode);
 	sideView->addEventHandler(new osgViewer::StatsHandler);
 	sideView->setCameraManipulator(new osgGA::TrackballManipulator);
 
@@ -493,4 +494,24 @@ void OSGWidget::processSelection()
 			qDebug() << "Selected a drawable:" << QString::fromStdString(intersection.drawable->getName());
 	}
 #endif
+}
+
+void OSGWidget::setSceneData(const osg::ref_ptr<osg::Node>& node)
+{
+	if (!node)
+		return;
+
+	osgViewer::ViewerBase::Views views;
+	viewer_->getViews(views);
+
+	for (auto* view : views)
+	{
+		if (!view)
+			continue;
+
+		view->setSceneData(node.get());
+		view->home();
+	}
+
+	this->update();
 }

@@ -5,6 +5,7 @@
 #include <QOpenGLWidget>
 
 #include <osg/ref_ptr>
+#include <osg/Node>
 
 #include <osgViewer/GraphicsWindow>
 #include <osgViewer/CompositeViewer>
@@ -33,6 +34,8 @@ public:
 		Qt::WindowFlags f = 0);
 
 	virtual ~OSGWidget();
+
+	void setSceneData(const osg::ref_ptr<osg::Node>& node);
 
 protected:
 
