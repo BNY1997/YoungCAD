@@ -1,0 +1,1 @@
+set(Qt5_ROOT ${CMAKE_SOURCE_DIR}/packages/Qt5-5.15.16)

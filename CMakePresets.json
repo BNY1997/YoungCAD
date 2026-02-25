@@ -1,18 +1,15 @@
 {
-  "version": 8,
+  "version": 3,
   "configurePresets": [
     {
       "name": "windows-base",
+      "description": "Basic configurations for Windows platform",
       "hidden": true,
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/out/build/${presetName}",
-      "installDir": "${sourceDir}/out/install/${presetName}",
+      "binaryDir": "${sourceDir}/build/out/${presetName}",
+      "installDir": "${sourceDir}/install/${presetName}",
       "cacheVariables": {
-        "CMAKE_CXX_STANDARD": "20",
-        "CMAKE_CXX_STANDARD_REQUIRED": true,
-        "CMAKE_CXX_EXTENSIONS": false,
-        "CMAKE_EXPORT_COMPILE_COMMANDS": true,
-        "CMAKE_VS_OPEN_FOLDER_AT_STARTUP": true
+        "NUGET_ROOT": "${sourceDir}/cmake/Tools",
+        "ODA_PACKAGE_VERSION": "23.4.12"
       },
       "condition": {
         "type": "equals",
@@ -21,115 +18,240 @@
       }
     },
     {
-      "name": "x64-debug",
-      "displayName": "Windows x64 Debug (VS2026)",
-      "description": "使用MSVC x64工具集进行调试构建",
+      "name": "vc15-amd64-vs2022-base",
+      "description": "Visual Studio 17 2022 vc15 build For Windows amd64(Debug)",
+      "hidden": true,
       "inherits": "windows-base",
+      "generator": "Visual Studio 18 2026",
       "architecture": {
-        "value": "x64",
-        "strategy": "external"
+        "strategy": "set",
+        "value": "x64"
       },
       "toolset": {
-        "value": "host=x64",
-        "strategy": "external"
+        "strategy": "set",
+        "value": "host=x64"
+      }
+    },
+    {
+      "name": "amd64-vs2017-base",
+      "description": "Visual Studio 15 2017 vc15 build For Windows amd64(Debug)",
+      "hidden": true,
+      "inherits": "windows-base",
+      "generator": "Visual Studio 18 2026",
+      "architecture": {
+        "strategy": "set",
+        "value": "x64"
       },
+      "toolset": {
+        "strategy": "set",
+        "value": "host=x64"
+      }
+    },
+    {
+      "name": "amd64-windows-clangcl-base",
+      "hidden": true,
+      "inherits": "windows-base",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "installDir": "${sourceDir}/out/install/${presetName}",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang-cl",
+        "CMAKE_CXX_COMPILER": "clang-cl",
+        "CMAKE_MT": "llvm-mt",
+        "CMAKE_SYSTEM_LIBRARY_PATH": "$env{ProgramFiles}/LLVM/lib",
+        "CMAKE_ARCHIVE_OUTPUT_DIRECTORY": "${sourceDir}/out/build/${presetName}/Debug/lib",
+        "CMAKE_LIBRARY_OUTPUT_DIRECTORY": "${sourceDir}/out/build/${presetName}/Debug/lib",
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/out/build/${presetName}/Debug/bin"
+      }
+    },
+    {
+      "name": "amd64-windows-clangcl141-base",
+      "hidden": true,
+      "inherits": "amd64-windows-clangcl-base",
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "-fms-compatibility-version=19.16.27051 /EHsc"
+      }
+    },
+    {
+      "name": "debug-base",
+      "description": "Debug Configuration",
+      "hidden": true,
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}"
-      },
-      "vendor": {
-        "microsoft.com/VisualStudioSettings/CMake/1.0": {
-          "hostOS": [ "Windows" ],
-          "intelliSenseMode": "windows-msvc-x64"
+        "ODA_PLATFORM": "vc15_amd64dlldbg",
+        "ENABLE_PERFETTO": true,
+        "ADD_MESHCONVERTER" : "off"
+      }
+    },
+    {
+      "name": "release-base",
+      "description": "Release Configuration",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "ODA_PLATFORM": "vc15_amd64dll",
+        "ADD_MESHCONVERTER": "off"
+      }
+    },
+    {
+      "name": "relwithdebinfo-base",
+      "description": "RelWithDebInfo Configuration",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "ODA_PLATFORM": "vc15_amd64dllrwd",
+        "ENABLE_PERFETTO": true,
+        "ADD_MESHCONVERTER": "off"
+      }
+    },
+    {
+      "name": "vc15-amd64-vs2022-debug",
+      "displayName": "VC15 amd64 Debug(VS2022)",
+      "description": "Visual Studio build For Windows amd64(Debug)",
+      "inherits": [
+        "vc15-amd64-vs2022-base",
+        "debug-base"
+      ]
+    },
+    {
+      "name": "vc15-amd64-vs2022-release",
+      "displayName": "VC15 amd64 Release(VS2022)",
+      "description": "Visual Studio build For Windows amd64(Release)",
+      "inherits": [
+        "vc15-amd64-vs2022-base",
+        "release-base"
+      ]
+    },
+    {
+      "name": "vc15-amd64-vs2022-relwithdebinfo",
+      "displayName": "VC15 amd64 RelWithDebInfo(VS2022)",
+      "description": "Visual Studio build For Windows amd64(RelWithDebInfo)",
+      "inherits": [
+        "vc15-amd64-vs2022-base",
+        "relwithdebinfo-base"
+      ]
+    },
+    {
+      "name": "amd64-vs2017-debug",
+      "displayName": "VC15 amd64 Debug(VS2017)",
+      "description": "Visual Studio build For Windows amd64(Debug)",
+      "inherits": [
+        "amd64-vs2017-base",
+        "debug-base"
+      ],
+      "cacheVariables": {
+        "VS_2017_DEBUG": {
+          "type": "BOOL",
+          "value": "ON"
         }
       }
     },
     {
-      "name": "x64-release",
-      "displayName": "Windows x64 Release (VS2026)",
-      "description": "使用MSVC x64工具集进行发布构建",
-      "inherits": "windows-base",
-      "architecture": {
-        "value": "x64",
-        "strategy": "external"
-      },
-      "toolset": {
-        "value": "host=x64",
-        "strategy": "external"
-      },
+      "name": "amd64-vs2017-release",
+      "displayName": "VC15 amd64 Release(VS2017)",
+      "description": "Visual Studio build For Windows amd64(Release)",
+      "inherits": [
+        "amd64-vs2017-base",
+        "release-base"
+      ]
+    },
+    {
+      "name": "amd64-vs2017-relwithdebinfo",
+      "displayName": "VC15 amd64 RelWithDebInfo(VS2017)",
+      "description": "Visual Studio build For Windows amd64(RelWithDebInfo)",
+      "inherits": [
+        "amd64-vs2017-base",
+        "relwithdebinfo-base"
+      ]
+    },
+    {
+      "name": "amd64-windows-clangcl141-debug",
+      "displayName": "amd64 Windows clang-cl 141 Debug",
+      "hidden": false,
+      "inherits": [
+        "amd64-windows-clangcl141-base",
+        "debug-base"
+      ]
+    },
+    {
+      "name": "arm64-android",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "installDir": "${sourceDir}/out/install/${presetName}",
+      "toolchainFile": "$env{ANDROID_NDK}/build/cmake/android.toolchain.cmake",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}"
+        "CMAKE_MAKE_PROGRAM": "${sourceDir}/cmake/Tools/ninja/ninja.exe",
+        "NUGET_ROOT": "${sourceDir}/build/nuget",
+        "ODA_PACKAGE_VERSION": "23.4.9",
+        "CMAKE_SYSTEM_NAME": "Android",
+        "ANDROID_ABI": "arm64-v8a",
+        "ANDROID_PLATFORM": "24"
       }
     },
     {
-      "name": "x64-clang-debug",
-      "displayName": "Windows x64 Clang Debug (VS2026)",
-      "description": "使用Clang-cl工具链进行调试",
-      "inherits": "x64-debug",
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "clang-cl",
-        "CMAKE_CXX_COMPILER": "clang-cl",
-        "CMAKE_CXX_FLAGS": "/clang:-fcoroutines-ts"
-      }
-    },
-    {
-      "name": "arm64-debug",
-      "displayName": "Windows ARM64 Debug (VS2026)",
-      "description": "ARM64架构调试构建",
-      "inherits": "windows-base",
-      "architecture": {
-        "value": "ARM64",
-        "strategy": "external"
-      },
-      "toolset": {
-        "value": "host=ARM64",
-        "strategy": "external"
-      },
+      "name": "arm64-android-debug",
+      "inherits": ["arm64-android"],
+      "hidden": false,
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "arm64-android-release",
+      "inherits": ["arm64-android"],
+      "hidden": false,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
       }
     }
   ],
   "buildPresets": [
     {
-      "name": "debug",
-      "configurePreset": "x64-debug",
-      "displayName": "构建 x64 调试版",
-      "description": "使用调试配置构建"
+      "name": "vc15-amd64-vs2022-debug",
+      "displayName": "VC15 amd64 VS2022 Debug",
+      "configurePreset": "vc15-amd64-vs2022-debug",
+      "configuration": "Debug"
     },
     {
-      "name": "release",
-      "configurePreset": "x64-release",
-      "displayName": "构建 x64 发布版",
-      "description": "使用发布配置构建"
+      "name": "vc15-amd64-vs2022-release",
+      "displayName": "VC15 amd64 VS2022 Release",
+      "configurePreset": "vc15-amd64-vs2022-release",
+      "configuration": "Release"
     },
     {
-      "name": "clang-debug",
-      "configurePreset": "x64-clang-debug",
-      "displayName": "构建 Clang 调试版",
-      "description": "使用Clang-cl工具链构建调试版"
-    }
-  ],
-  "testPresets": [
+      "name": "vc15-amd64-vs2022-relwithdebinfo",
+      "displayName": "VC15 amd64 VS2022 RelWithDebInfo",
+      "configurePreset": "vc15-amd64-vs2022-relwithdebinfo",
+      "configuration": "RelWithDebInfo"
+    },
     {
-      "name": "test-debug",
-      "configurePreset": "x64-debug",
-      "displayName": "测试调试构建",
-      "description": "运行调试版本的测试",
-      "output": {
-        "outputOnFailure": true
-      },
-      "execution": {
-        "noTestsAction": "error",
-        "stopOnFailure": false
-      }
+      "name": "amd64-vs2017-debug",
+      "displayName": "VC15 amd64 VS2017 Debug",
+      "configurePreset": "amd64-vs2017-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "amd64-vs2017-release",
+      "displayName": "VC15 amd64 VS2017 Release",
+      "configurePreset": "amd64-vs2017-release",
+      "configuration": "Release"
+    },
+    {
+      "name": "amd64-vs2017-relwithdebinfo",
+      "displayName": "VC15 amd64 VS2017 RelWithDebInfo",
+      "configurePreset": "amd64-vs2017-relwithdebinfo",
+      "configuration": "RelWithDebInfo"
+    },
+    {
+      "name": "arm64-android-debug",
+      "configurePreset": "arm64-android-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "arm64-android-release",
+      "configurePreset": "arm64-android-release",
+      "configuration": "Release"
     }
-  ],
-  "vendor": {
-    "microsoft.com/VisualStudioSettings/CMake/1.0": {
-      "automaticConfigurationReload": true,
-      "enableHostIntegration": true
-    }
-  }
+  ]
 }

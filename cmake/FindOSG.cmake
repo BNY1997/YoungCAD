@@ -9,7 +9,7 @@ endif()
 
 set(OSG_VERSION 3.6.8)
 
-set(OSG_ROOT ${CMAKE_SOURCE_DIR}/3rdParty/OSGD)
+set(OSG_ROOT ${CMAKE_SOURCE_DIR}/packages/OpenSceneGraph.${OSG_VERSION})
 
 set(OSG_INCLUDE_DIR "${OSG_ROOT}/build/native/include")
 set(OSG_PLUGIN_VERSION 3.6.2)

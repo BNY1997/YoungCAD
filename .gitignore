@@ -13,5 +13,5 @@ bin/
 .idea/
 *.user
 .vs/
-3rdParty/
+packages/
 .*/
