@@ -2,21 +2,18 @@
 #define MainWindow_h__
 
 #include <QMainWindow>
-#include <QMdiArea>
+#include "OSGWidget.h"
 
 class MainWindow : public QMainWindow
 {
-  Q_OBJECT
+	Q_OBJECT
 
 public:
-  MainWindow( QWidget* parent = 0, Qt::WindowFlags flags = 0 );
-  ~MainWindow();
-
-private slots:
-  void onCreateView();
+	MainWindow(QWidget* parent = 0, Qt::WindowFlags flags = 0);
+	~MainWindow();
 
 private:
-  QMdiArea* mdiArea_;
+	OSGWidget* m_osgWidget;
 };
 
 #endif

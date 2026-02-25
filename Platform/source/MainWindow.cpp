@@ -5,26 +5,15 @@
 #include <QMdiSubWindow>
 #include <QMenuBar>
 
-MainWindow::MainWindow( QWidget* parent, Qt::WindowFlags flags )
-  : QMainWindow( parent, flags ),
-    mdiArea_( new QMdiArea( this ) )
+MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags)
+	: QMainWindow(parent, flags)
 {
-  QMenuBar* menuBar = this->menuBar();
-
-  QMenu* menu = menuBar->addMenu( "Test" );
-  menu->addAction( "Create view", this, SLOT( onCreateView() ) );
-
-  this->setCentralWidget( mdiArea_ );
+	QMenuBar* menuBar = this->menuBar();
+	m_osgWidget = new OSGWidget(this);
+	this->setCentralWidget(m_osgWidget);
 }
 
 MainWindow::~MainWindow()
 {
 }
 
-void MainWindow::onCreateView()
-{
-  OSGWidget* osgWidget     = new OSGWidget( this );
-  QMdiSubWindow* subWindow = mdiArea_->addSubWindow( osgWidget );
-
-  subWindow->show();
-}

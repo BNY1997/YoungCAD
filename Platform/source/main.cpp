@@ -3,18 +3,18 @@
 #include <QApplication>
 #include <QSurfaceFormat>
 
-int main( int argc, char** argv )
+int main(int argc, char** argv)
 {
-  QApplication application( argc, argv );
+	QApplication application(argc, argv);
 
-  QSurfaceFormat format;
-  format.setVersion(2, 1);
-  format.setProfile( QSurfaceFormat::CompatibilityProfile );
+	QSurfaceFormat format;
+	format.setVersion(2, 1);
+	format.setProfile(QSurfaceFormat::CompatibilityProfile);
 
-  QSurfaceFormat::setDefaultFormat(format);
+	QSurfaceFormat::setDefaultFormat(format);
 
-  MainWindow mainWindow;
-  mainWindow.show();
+	MainWindow mainWindow;
+	mainWindow.show();
 
-  return( application.exec() );
+	return(application.exec());
 }
