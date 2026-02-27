@@ -7,6 +7,8 @@
 #include <osg/DisplaySettings>
 #include <osg/Geode>
 #include <osg/LightModel>
+#include <osg/Light>
+#include <osg/LightSource>
 #include <osg/Material>
 #include <osg/Shape>
 #include <osg/ShapeDrawable>
@@ -98,43 +100,53 @@ OSGWidget::OSGWidget(QWidget* parent,
 	, selectionActive_(false)
 	, selectionFinished_(true)
 {
-	//osg::Sphere* sphere = new osg::Sphere(osg::Vec3(0.f, 0.f, 0.f), 0.25f);
-	//osg::ShapeDrawable* sd = new osg::ShapeDrawable(sphere);
-	//sd->setColor(osg::Vec4(1.f, 0.f, 0.f, 1.f));
-	//sd->setName("A nice sphere");
-
-	//osg::Geode* geode = new osg::Geode;
-	//geode->addDrawable(sd);
-
-	//// Set material for basic lighting and enable depth tests. Else, the sphere
-	//// will suffer from rendering errors.
-	//{
-	//	osg::StateSet* stateSet = geode->getOrCreateStateSet();
-	//	osg::Material* material = new osg::Material;
-
-	//	material->setColorMode(osg::Material::AMBIENT_AND_DIFFUSE);
-
-	//	stateSet->setAttributeAndModes(material, osg::StateAttribute::ON);
-	//	stateSet->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
-	//}
+	// Enable multisampling for smoother edges
+	QSurfaceFormat format = this->format();
+	format.setSamples(4);
+	this->setFormat(format);
+	
+	osg::DisplaySettings::instance()->setNumMultiSamples(4);
 
 	float aspectRatio = static_cast<float>(this->width()) / static_cast<float>(this->height());
 	auto pixelRatio = this->devicePixelRatio();
 
 	osg::Camera* camera = new osg::Camera;
 	camera->setViewport(0, 0, this->width() * pixelRatio, this->height() * pixelRatio);
-	camera->setClearColor(osg::Vec4(1.f, 1.f, 1.f, 1.f));
+	camera->setClearColor(osg::Vec4(1.f, 1.f, 1.f, 1.f)); // White background
 	camera->setProjectionMatrixAsPerspective(30.f, aspectRatio, 1.f, 1000.f);
 	camera->setGraphicsContext(graphicsWindow_);
 
 	osg::StateSet* stateSet = camera->getOrCreateStateSet();
-	osg::LightModel* lightModel = new osg::LightModel;
-	lightModel->setAmbientIntensity(osg::Vec4(0.8f, 0.8f, 0.8f, 1.f)); // Ambient light
+
+	// 1. Light Model (Global Atmosphere/Ambient Light)
+	osg::ref_ptr<osg::LightModel> lightModel = new osg::LightModel();
+	lightModel->setAmbientIntensity(osg::Vec4(0.4f, 0.4f, 0.4f, 1.0f)); // Soft ambient
+	lightModel->setTwoSided(true);
+	lightModel->setLocalViewer(true);
 	stateSet->setAttributeAndModes(lightModel, osg::StateAttribute::ON);
+
+	// 2. Main Light (Directional Key Light)
+	osg::ref_ptr<osg::Light> light = new osg::Light;
+	light->setLightNum(0);
+	light->setPosition(osg::Vec4(1.0f, 1.0f, 1.0f, 0.0f)); // Directional light from top-right-front
+	light->setDiffuse(osg::Vec4(0.8f, 0.8f, 0.8f, 1.0f));  // Bright white light
+	light->setSpecular(osg::Vec4(0.5f, 0.5f, 0.5f, 1.0f)); // Moderate specular
+	light->setAmbient(osg::Vec4(0.2f, 0.2f, 0.2f, 1.0f));  // Additional ambient from this light source
+	stateSet->setAttributeAndModes(light, osg::StateAttribute::ON);
+	
+	// Enable features
+	stateSet->setMode(GL_LIGHTING, osg::StateAttribute::ON);
+	stateSet->setMode(GL_LIGHT0, osg::StateAttribute::ON);
 	stateSet->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
+	stateSet->setMode(GL_NORMALIZE, osg::StateAttribute::ON); // Ensure normals are normalized for lighting
+	stateSet->setMode(GL_MULTISAMPLE, osg::StateAttribute::ON); // Enable Multisampling state
 
 	osgViewer::View* view = new osgViewer::View;
 	view->setCamera(camera);
+	
+	// Disable default headlight to use our custom lighting setup
+	view->setLightingMode(osg::View::NO_LIGHT);
+
 	//view->setSceneData(geode);
 	view->addEventHandler(new osgViewer::StatsHandler);
 #ifdef WITH_PICK_HANDLER

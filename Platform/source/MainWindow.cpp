@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 #include "OSGWidget.h"
+#include <osg/Material>
 
 #include <QDebug>
 #include <QMdiSubWindow>
@@ -25,6 +26,11 @@
 #include <osg/Geometry>
 #include <osg/Node>
 #include <osgUtil/SmoothingVisitor>
+#include <TopoDS_Edge.hxx>
+#include <BRepAdaptor_Curve.hxx>
+#include <GCPnts_TangentialDeflection.hxx>
+#include <osg/LineWidth>
+#include <osg/PolygonOffset>
 
 osg::Node* convertTopoDSImageToOSG(const TopoDS_Shape& shape)
 {
@@ -91,6 +97,68 @@ osg::Node* convertTopoDSImageToOSG(const TopoDS_Shape& shape)
 
 	// Generate normals
 	osgUtil::SmoothingVisitor::smooth(*geometry);
+
+	// Edge Extraction
+	osg::ref_ptr<osg::Geometry> edgeGeometry = new osg::Geometry();
+	osg::ref_ptr<osg::Vec3Array> edgeVertices = new osg::Vec3Array();
+	edgeGeometry->setVertexArray(edgeVertices);
+
+	osg::ref_ptr<osg::Vec4Array> edgeColors = new osg::Vec4Array();
+	edgeColors->push_back(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f)); // Black color for edges
+	edgeGeometry->setColorArray(edgeColors, osg::Array::BIND_OVERALL);
+
+	TopExp_Explorer edgeEx(shape, TopAbs_EDGE);
+	while (edgeEx.More())
+	{
+		const TopoDS_Edge& edge = TopoDS::Edge(edgeEx.Current());
+
+		if (!BRep_Tool::Degenerated(edge))
+		{
+			BRepAdaptor_Curve curve(edge);
+			// Discretize the curve
+			// Angular deflection ~ 0.1 radians, Curvature deflection ~ 0.1 units
+			GCPnts_TangentialDeflection discretizer(curve, 0.1, 0.1);
+
+			if (discretizer.NbPoints() > 1)
+			{
+				osg::ref_ptr<osg::DrawElementsUInt> lineStrip = new osg::DrawElementsUInt(osg::PrimitiveSet::LINE_STRIP);
+				int startIndex = edgeVertices->size();
+
+				for (int i = 1; i <= discretizer.NbPoints(); ++i)
+				{
+					gp_Pnt p = discretizer.Value(i);
+					edgeVertices->push_back(osg::Vec3(p.X(), p.Y(), p.Z()));
+					lineStrip->push_back(startIndex + i - 1);
+				}
+				edgeGeometry->addPrimitiveSet(lineStrip);
+			}
+		}
+		edgeEx.Next();
+	}
+
+	if (edgeVertices->size() > 0)
+	{
+		osg::StateSet* edgeState = edgeGeometry->getOrCreateStateSet();
+		edgeState->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+		edgeState->setAttributeAndModes(new osg::LineWidth(2.0f), osg::StateAttribute::ON);
+		geode->addDrawable(edgeGeometry);
+	}
+
+	osg::StateSet* stateSet = geometry->getOrCreateStateSet();
+	osg::Material* material = new osg::Material;
+
+	material->setColorMode(osg::Material::AMBIENT_AND_DIFFUSE);
+
+	// Set material properties for better realism
+	material->setAmbient(osg::Material::FRONT_AND_BACK, osg::Vec4(0.2f, 0.2f, 0.2f, 1.0f));
+	material->setDiffuse(osg::Material::FRONT_AND_BACK, osg::Vec4(0.6f, 0.6f, 0.6f, 1.0f));
+	material->setSpecular(osg::Material::FRONT_AND_BACK, osg::Vec4(0.5f, 0.5f, 0.5f, 1.0f));
+	material->setShininess(osg::Material::FRONT_AND_BACK, 64.0f);
+
+	stateSet->setAttributeAndModes(material, osg::StateAttribute::ON);
+	stateSet->setAttributeAndModes(new osg::PolygonOffset(1.0f, 1.0f), osg::StateAttribute::ON);
+	stateSet->setMode(GL_POLYGON_OFFSET_FILL, osg::StateAttribute::ON);
+	stateSet->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
 
 	return geode.release();
 }
