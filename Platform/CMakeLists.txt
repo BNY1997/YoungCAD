@@ -39,6 +39,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 target_include_directories(${PROJECT_NAME} PRIVATE 
 ${PLATFORM_INCLUDE_DIR}
 ${COMMON_INCLUDE_DIRS}
+${OpenCASCADE_INCLUDE_DIR}
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE 
@@ -55,6 +56,22 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     OSG::UTIL
     OSG::GA
     Common::Common
+    TKernel
+    TKMath
+    TKG2d
+    TKG3d
+    TKGeomBase
+    TKGeomAlgo
+    TKBRep
+    TKTopAlgo
+    TKPrim
+    TKBO
+    TKFillet
+    TKMesh
+    TKShHealing
+    TKDESTEP
+    TKDEIGES
+    TKXSBase
 )
 
 if(WIN32 AND Qt5_DIR)
@@ -79,6 +96,11 @@ if(WIN32 AND Qt5_DIR)
 
             COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${OSG_LIB_PATH}/${CMAKE_BUILD_TYPE}"
+            ${CMAKE_SOURCE_DIR}/build/bin/${CMAKE_BUILD_TYPE}
+
+            # copy OCC dlls to output dir
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${OpenCASCADE_BINARY_DIR}$<$<CONFIG:Debug>:d>"
             ${CMAKE_SOURCE_DIR}/build/bin/${CMAKE_BUILD_TYPE}
         )
     endif()

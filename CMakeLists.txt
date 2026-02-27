@@ -55,7 +55,9 @@ endif()
 #find_package(LsLandxmlParser REQUIRED)
 
 find_package(OSG REQUIRED)
-
+# OpenCASCADE
+list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/packages/OCC/cmake")
+find_package(OpenCASCADE REQUIRED)
 #设置公共目录头文文件路径
 # SET(COMMON_INCLUDE ${CMAKE_SOURCE_DIR}/Common/include)
 # SET(TOOL_INCLUDE ${CMAKE_SOURCE_DIR}/BasePlugin/include)

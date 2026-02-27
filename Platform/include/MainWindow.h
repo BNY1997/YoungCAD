@@ -19,7 +19,9 @@ public:
 	void onOpenObjFile();
 private:
 	void readObjModel(const std::string& filePath);
-
+	void onCreateOCCCube();
+	void onCreateOCCSphere();
+	void onCreateOCCCone();
 private:
 	OSGWidget* m_osgWidget;
 	Ui::MainWindow* ui;

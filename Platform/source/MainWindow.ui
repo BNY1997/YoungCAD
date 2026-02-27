@@ -29,12 +29,36 @@
     </property>
     <addaction name="actionObj_File"/>
    </widget>
+   <widget class="QMenu" name="menu_2">
+    <property name="title">
+     <string>简单图形</string>
+    </property>
+    <addaction name="action_cube"/>
+    <addaction name="action_sphere"/>
+    <addaction name="action_cone"/>
+   </widget>
    <addaction name="menu"/>
+   <addaction name="menu_2"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionObj_File">
    <property name="text">
     <string>Obj 文件</string>
+   </property>
+  </action>
+  <action name="action_cube">
+   <property name="text">
+    <string>正方体</string>
+   </property>
+  </action>
+  <action name="action_sphere">
+   <property name="text">
+    <string>球体</string>
+   </property>
+  </action>
+  <action name="action_cone">
+   <property name="text">
+    <string>圆锥</string>
    </property>
   </action>
  </widget>
