@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include "OSGWidget.h"
 #include "DataExchange.h"
+#include "ShapePool.h"
 
 namespace Ui
 {
@@ -28,6 +29,7 @@ private:
 private:
 	OSGWidget* m_osgWidget;
 	DataExchangeOptions m_dataExchangeOptions;
+	ShapePool m_shapePool;
 	Ui::MainWindow* ui;
 };
 
