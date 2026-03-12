@@ -35,6 +35,9 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
   AUTORCC ON
 )
 
+# Ensure DataExchange translation unit is included (some generators cache GLOB results)
+target_sources(${PROJECT_NAME} PRIVATE ${PLATFORM_SOURCE_DIR}/DataExchange.cpp)
+
 
 target_include_directories(${PROJECT_NAME} PRIVATE 
 ${PLATFORM_INCLUDE_DIR}

@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "OSGWidget.h"
+#include "DataExchange.h"
 
 namespace Ui
 {
@@ -17,13 +18,16 @@ public:
 	~MainWindow();
 	
 	void onOpenObjFile();
+    void onOpenTxtFile();
 private:
 	void readObjModel(const std::string& filePath);
 	void onCreateOCCCube();
 	void onCreateOCCSphere();
 	void onCreateOCCCone();
+	DataExchangeOptions createDataExchangeOptions() const;
 private:
 	OSGWidget* m_osgWidget;
+	DataExchangeOptions m_dataExchangeOptions;
 	Ui::MainWindow* ui;
 };
 

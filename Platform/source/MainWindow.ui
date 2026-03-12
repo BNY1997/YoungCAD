@@ -28,6 +28,7 @@
      <string>打开</string>
     </property>
     <addaction name="actionObj_File"/>
+    <addaction name="action_text"/>
    </widget>
    <widget class="QMenu" name="menu_2">
     <property name="title">
@@ -59,6 +60,11 @@
   <action name="action_cone">
    <property name="text">
     <string>圆锥</string>
+   </property>
+  </action>
+  <action name="action_text">
+   <property name="text">
+    <string>点云 TXT</string>
    </property>
   </action>
  </widget>
