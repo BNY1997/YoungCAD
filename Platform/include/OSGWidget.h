@@ -6,6 +6,8 @@
 
 #include <osg/ref_ptr>
 #include <osg/Node>
+#include <osg/Material>
+#include <osg/observer_ptr>
 
 #include <osgViewer/GraphicsWindow>
 #include <osgViewer/CompositeViewer>
@@ -36,6 +38,11 @@ public:
 	virtual ~OSGWidget();
 
 	void setSceneData(const osg::ref_ptr<osg::Node>& node);
+	void selectModelById(int modelId);
+	int selectedModelId() const;
+
+signals:
+	void modelPicked(int modelId);
 
 protected:
 
@@ -70,6 +77,15 @@ private:
 	bool selectionFinished_;
 
 	void processSelection();
+	int pickModelIdAt(const QPoint& pos) const;
+	osg::Node* findNodeByModelId(int modelId) const;
+	void applyHighlight(osg::Node* node);
+	void clearHighlight();
+
+	int m_selectedModelId{ -1 };
+	osg::observer_ptr<osg::Node> m_selectedNode;
+	osg::ref_ptr<osg::Material> m_previousMaterial;
+	bool m_selectedNodeHadMaterial{ false };
 };
 
 #endif

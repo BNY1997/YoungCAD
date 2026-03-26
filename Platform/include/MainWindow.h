@@ -2,9 +2,11 @@
 #define MainWindow_h__
 
 #include <QMainWindow>
+#include <QString>
 #include "OSGWidget.h"
 #include "DataExchange.h"
 #include "ShapePool.h"
+#include "ProjectTreeDock.h"
 
 namespace Ui
 {
@@ -26,8 +28,14 @@ private:
 	void onCreateOCCSphere();
 	void onCreateOCCCone();
 	DataExchangeOptions createDataExchangeOptions() const;
+	void onTreeModelSelected(int modelId);
+	void onViewportModelPicked(int modelId);
+	void onDeleteModelRequested(int modelId);
+	void registerModel(int modelId, const QString& displayName, bool hasOccShape);
+	void tagNodeWithModelId(int modelId);
 private:
 	OSGWidget* m_osgWidget;
+	ProjectTreeDock* m_projectTreeDock;
 	DataExchangeOptions m_dataExchangeOptions;
 	ShapePool m_shapePool;
 	Ui::MainWindow* ui;

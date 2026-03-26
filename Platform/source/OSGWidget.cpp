@@ -364,6 +364,13 @@ void OSGWidget::mouseReleaseEvent(QMouseEvent* event)
 		this->getEventQueue()->mouseButtonRelease(static_cast<float>(pixelRatio * event->x()),
 			static_cast<float>(pixelRatio * event->y()),
 			button);
+
+		if (event->button() == Qt::LeftButton)
+		{
+			const int pickedModelId = pickModelIdAt(event->pos());
+			selectModelById(pickedModelId);
+			emit modelPicked(pickedModelId);
+		}
 	}
 }
 
@@ -515,4 +522,127 @@ void OSGWidget::setSceneData(const osg::ref_ptr<osg::Node>& node)
 	}
 
 	this->update();
+}
+
+void OSGWidget::selectModelById(int modelId)
+{
+	if (modelId == m_selectedModelId)
+		return;
+
+	clearHighlight();
+
+	if (modelId < 0)
+	{
+		m_selectedModelId = -1;
+		this->update();
+		return;
+	}
+
+	osg::Node* node = findNodeByModelId(modelId);
+	if (!node)
+	{
+		m_selectedModelId = -1;
+		this->update();
+		return;
+	}
+
+	applyHighlight(node);
+	m_selectedModelId = modelId;
+	this->update();
+}
+
+int OSGWidget::selectedModelId() const
+{
+	return m_selectedModelId;
+}
+
+int OSGWidget::pickModelIdAt(const QPoint& pos) const
+{
+	osgViewer::View* view = viewer_->getView(0);
+	if (!view)
+		return -1;
+
+	osgUtil::LineSegmentIntersector::Intersections intersections;
+	const auto pixelRatio = this->devicePixelRatio();
+	if (!view->computeIntersections(pos.x() * pixelRatio, pos.y() * pixelRatio, intersections))
+		return -1;
+
+	for (const auto& intersection : intersections)
+	{
+		const auto& nodePath = intersection.nodePath;
+		for (auto it = nodePath.rbegin(); it != nodePath.rend(); ++it)
+		{
+			int modelId = -1;
+			if ((*it)->getUserValue("modelId", modelId))
+				return modelId;
+		}
+	}
+
+	return -1;
+}
+
+osg::Node* OSGWidget::findNodeByModelId(int modelId) const
+{
+	osgViewer::View* view = viewer_->getView(0);
+	if (!view)
+		return nullptr;
+
+	osg::Node* scene = view->getSceneData();
+	osg::Group* root = scene ? scene->asGroup() : nullptr;
+	if (!root)
+		return nullptr;
+
+	for (unsigned int i = 0; i < root->getNumChildren(); ++i)
+	{
+		osg::Node* node = root->getChild(i);
+		if (!node)
+			continue;
+
+		int entryId = -1;
+		if (node->getUserValue("modelId", entryId) && entryId == modelId)
+			return node;
+	}
+
+	return nullptr;
+}
+
+void OSGWidget::applyHighlight(osg::Node* node)
+{
+	if (!node)
+		return;
+
+	osg::StateSet* stateSet = node->getOrCreateStateSet();
+	auto* oldMaterial = dynamic_cast<osg::Material*>(stateSet->getAttribute(osg::StateAttribute::MATERIAL));
+	m_selectedNodeHadMaterial = (oldMaterial != nullptr);
+	m_previousMaterial = oldMaterial;
+
+	osg::ref_ptr<osg::Material> selectedMaterial = new osg::Material;
+	selectedMaterial->setDiffuse(osg::Material::FRONT_AND_BACK, osg::Vec4(1.0f, 0.85f, 0.2f, 1.0f));
+	selectedMaterial->setAmbient(osg::Material::FRONT_AND_BACK, osg::Vec4(0.55f, 0.45f, 0.1f, 1.0f));
+	selectedMaterial->setSpecular(osg::Material::FRONT_AND_BACK, osg::Vec4(0.2f, 0.2f, 0.2f, 1.0f));
+	selectedMaterial->setShininess(osg::Material::FRONT_AND_BACK, 32.0f);
+
+	stateSet->setAttributeAndModes(selectedMaterial, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
+	m_selectedNode = node;
+}
+
+void OSGWidget::clearHighlight()
+{
+	osg::Node* node = m_selectedNode.get();
+	if (!node)
+		return;
+
+	osg::StateSet* stateSet = node->getOrCreateStateSet();
+	if (m_selectedNodeHadMaterial && m_previousMaterial.valid())
+	{
+		stateSet->setAttributeAndModes(m_previousMaterial.get(), osg::StateAttribute::ON);
+	}
+	else
+	{
+		stateSet->removeAttribute(osg::StateAttribute::MATERIAL);
+	}
+
+	m_selectedNode = nullptr;
+	m_previousMaterial = nullptr;
+	m_selectedNodeHadMaterial = false;
 }

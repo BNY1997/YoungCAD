@@ -36,7 +36,11 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 
 # Ensure DataExchange translation unit is included (some generators cache GLOB results)
-target_sources(${PROJECT_NAME} PRIVATE ${PLATFORM_SOURCE_DIR}/DataExchange.cpp)
+target_sources(${PROJECT_NAME} PRIVATE
+    ${PLATFORM_SOURCE_DIR}/DataExchange.cpp
+    ${PLATFORM_SOURCE_DIR}/ProjectTreeDock.cpp
+    ${PLATFORM_INCLUDE_DIR}/ProjectTreeDock.h
+)
 
 
 target_include_directories(${PROJECT_NAME} PRIVATE 
