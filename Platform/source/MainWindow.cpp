@@ -10,8 +10,12 @@
 #include <QDockWidget>
 #include <QElapsedTimer>
 #include <QFileInfo>
+#include <QFrame>
+#include <QGridLayout>
 #include <QMdiSubWindow>
 #include <QMenuBar>
+#include <QPushButton>
+#include <algorithm>
 
 #include <osgDB/ReadFile>
 #include <osgDB/WriteFile>
@@ -78,6 +82,7 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags)
 	// create action for TXT point cloud import and add to existing '打开' menu if available
 
 	connect(ui->action_text, &QAction::triggered, this, &MainWindow::onOpenTxtFile);
+	createViewControlPanel();
 }
 
 MainWindow::~MainWindow()
@@ -119,6 +124,7 @@ void MainWindow::onOpenTxtFile()
 					const int modelId = m_shapePool.addNode(name, node);
 					tagNodeWithModelId(modelId);
 					registerModel(modelId, QString::fromStdString(name), false);
+					m_osgWidget->centerView();
                     m_osgWidget->update();
                 }, Qt::QueuedConnection);
             }
@@ -171,6 +177,8 @@ void MainWindow::readObjModel(const std::string& filePath)
 		const int modelId = m_shapePool.addNode(modelName.toStdString(), node);
 		tagNodeWithModelId(modelId);
 		registerModel(modelId, modelName, false);
+		if (m_osgWidget)
+			m_osgWidget->centerView();
 		if (m_osgWidget)
 			m_osgWidget->update();
 	}, Qt::QueuedConnection);
@@ -258,6 +266,76 @@ void MainWindow::tagNodeWithModelId(int modelId)
 
 	entry->node->setUserValue("modelId", modelId);
 	entry->node->setName(entry->name);
+}
+
+void MainWindow::createViewControlPanel()
+{
+	if (!m_osgWidget)
+		return;
+
+	auto* panel = new QFrame(m_osgWidget);
+	panel->setObjectName(QStringLiteral("viewControlPanel"));
+	panel->setStyleSheet(
+		"#viewControlPanel {"
+		" background-color: rgba(255,255,255,220);"
+		" border: 1px solid #c8c8c8;"
+		" border-radius: 8px;"
+		"}"
+		"#viewControlPanel QPushButton {"
+		" min-width: 68px;"
+		" padding: 4px 8px;"
+		"}"
+	);
+
+	auto* layout = new QGridLayout(panel);
+	layout->setContentsMargins(8, 8, 8, 8);
+	layout->setSpacing(6);
+
+	auto addButton = [this, layout, panel](const QString& text, int row, int col, OSGWidget::StandardView view) {
+		QPushButton* button = new QPushButton(text, panel);
+		layout->addWidget(button, row, col);
+		connect(button, &QPushButton::clicked, this, [this, view]() {
+			if (m_osgWidget)
+				m_osgWidget->setStandardView(view);
+		});
+	};
+
+	addButton(QStringLiteral("Top"), 0, 0, OSGWidget::StandardView::Top);
+	addButton(QStringLiteral("Bottom"), 0, 1, OSGWidget::StandardView::Bottom);
+	addButton(QStringLiteral("Front"), 1, 0, OSGWidget::StandardView::Front);
+	addButton(QStringLiteral("Back"), 1, 1, OSGWidget::StandardView::Back);
+	addButton(QStringLiteral("Right"), 2, 0, OSGWidget::StandardView::Right);
+	addButton(QStringLiteral("Left"), 2, 1, OSGWidget::StandardView::Left);
+
+	QPushButton* centerButton = new QPushButton(QStringLiteral("Center"), panel);
+	layout->addWidget(centerButton, 3, 0, 1, 2);
+	connect(centerButton, &QPushButton::clicked, this, [this]() {
+		if (m_osgWidget)
+			m_osgWidget->centerView();
+	});
+
+	panel->adjustSize();
+	panel->show();
+	m_viewControlPanel = panel;
+	positionViewControlPanel();
+}
+
+void MainWindow::positionViewControlPanel()
+{
+	if (!m_osgWidget || !m_viewControlPanel)
+		return;
+
+	const int margin = 12;
+	const int x = m_osgWidget->width() - m_viewControlPanel->width() - margin;
+	const int y = margin;
+	m_viewControlPanel->move(std::max(0, x), std::max(0, y));
+	m_viewControlPanel->raise();
+}
+
+void MainWindow::resizeEvent(QResizeEvent* event)
+{
+	QMainWindow::resizeEvent(event);
+	positionViewControlPanel();
 }
 
 

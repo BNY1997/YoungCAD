@@ -32,6 +32,16 @@ class OSGWidget : public QOpenGLWidget
 	Q_OBJECT
 
 public:
+	enum class StandardView
+	{
+		Top,
+		Bottom,
+		Front,
+		Back,
+		Right,
+		Left
+	};
+
 	OSGWidget(QWidget* parent = 0,
 		Qt::WindowFlags f = 0);
 
@@ -40,6 +50,8 @@ public:
 	void setSceneData(const osg::ref_ptr<osg::Node>& node);
 	void selectModelById(int modelId);
 	int selectedModelId() const;
+	void setStandardView(StandardView view);
+	void centerView();
 
 signals:
 	void modelPicked(int modelId);
@@ -81,6 +93,8 @@ private:
 	osg::Node* findNodeByModelId(int modelId) const;
 	void applyHighlight(osg::Node* node);
 	void clearHighlight();
+	void drawFloatingAxes(QPainter& painter) const;
+	osg::observer_ptr<osg::Node> m_sceneContent;
 
 	int m_selectedModelId{ -1 };
 	osg::observer_ptr<osg::Node> m_selectedNode;

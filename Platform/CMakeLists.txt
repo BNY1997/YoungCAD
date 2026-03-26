@@ -62,6 +62,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     OSG::DB 
     OSG::UTIL
     OSG::GA
+    OSG::THREADS
     Common::Common
     TKernel
     TKMath

@@ -5,7 +5,6 @@
 #include <osg/Node>
 
 #include <osg/DisplaySettings>
-#include <osg/Geode>
 #include <osg/LightModel>
 #include <osg/Light>
 #include <osg/LightSource>
@@ -17,6 +16,7 @@
 #include <osgDB/WriteFile>
 
 #include <osgGA/EventQueue>
+#include <osgGA/CameraManipulator>
 #include <osgGA/TrackballManipulator>
 
 #include <osgUtil/IntersectionVisitor>
@@ -26,6 +26,8 @@
 #include <osgViewer/ViewerEventHandlers>
 
 #include <cassert>
+
+#include <algorithm>
 
 #include <stdexcept>
 #include <vector>
@@ -37,6 +39,45 @@
 
 namespace
 {
+	osg::Vec3d safeSceneCenter(osg::Node* node)
+	{
+		if (!node)
+			return osg::Vec3d(0.0, 0.0, 0.0);
+		const osg::BoundingSphere bs = node->getBound();
+		return bs.valid() ? bs.center() : osg::Vec3d(0.0, 0.0, 0.0);
+	}
+
+	double safeSceneRadius(osg::Node* node)
+	{
+		if (!node)
+			return 10.0;
+		const osg::BoundingSphere bs = node->getBound();
+		if (!bs.valid() || bs.radius() <= 1e-6)
+			return 10.0;
+		return bs.radius();
+	}
+
+osg::Node* findByModelIdRecursive(osg::Node* node, int modelId)
+{
+	if (!node)
+		return nullptr;
+
+	int currentId = -1;
+	if (node->getUserValue("modelId", currentId) && currentId == modelId)
+		return node;
+
+	osg::Group* group = node->asGroup();
+	if (!group)
+		return nullptr;
+
+	for (unsigned int i = 0; i < group->getNumChildren(); ++i)
+	{
+		if (osg::Node* found = findByModelIdRecursive(group->getChild(i), modelId))
+			return found;
+	}
+
+	return nullptr;
+}
 
 #ifdef WITH_SELECTION_PROCESSING
 	QRect makeRectangle(const QPoint& first, const QPoint& second)
@@ -186,6 +227,7 @@ void OSGWidget::paintEvent(QPaintEvent* /* paintEvent */)
 	painter.setRenderHint(QPainter::Antialiasing);
 
 	this->paintGL();
+	drawFloatingAxes(painter);
 
 #ifdef WITH_SELECTION_PROCESSING
 	if (selectionActive_ && !selectionFinished_)
@@ -509,6 +551,8 @@ void OSGWidget::setSceneData(const osg::ref_ptr<osg::Node>& node)
 	if (!node)
 		return;
 
+	m_sceneContent = node.get();
+
 	osgViewer::ViewerBase::Views views;
 	viewer_->getViews(views);
 
@@ -521,6 +565,68 @@ void OSGWidget::setSceneData(const osg::ref_ptr<osg::Node>& node)
 		view->home();
 	}
 
+	this->update();
+}
+
+void OSGWidget::setStandardView(StandardView viewType)
+{
+	osgViewer::View* view = viewer_->getView(0);
+	if (!view)
+		return;
+
+	osgGA::CameraManipulator* manipulator = view->getCameraManipulator();
+	osg::Node* target = m_sceneContent.valid() ? m_sceneContent.get() : view->getSceneData();
+	const osg::Vec3d center = safeSceneCenter(target);
+	const double radius = safeSceneRadius(target);
+	const double distance = radius * 2.5;
+
+	osg::Vec3d eye = center + osg::Vec3d(0.0, -distance, 0.0);
+	osg::Vec3d up(0.0, 0.0, 1.0);
+
+	switch (viewType)
+	{
+	case StandardView::Top:
+		eye = center + osg::Vec3d(0.0, 0.0, distance);
+		up = osg::Vec3d(0.0, 1.0, 0.0);
+		break;
+	case StandardView::Bottom:
+		eye = center + osg::Vec3d(0.0, 0.0, -distance);
+		up = osg::Vec3d(0.0, 1.0, 0.0);
+		break;
+	case StandardView::Front:
+		eye = center + osg::Vec3d(0.0, -distance, 0.0);
+		up = osg::Vec3d(0.0, 0.0, 1.0);
+		break;
+	case StandardView::Back:
+		eye = center + osg::Vec3d(0.0, distance, 0.0);
+		up = osg::Vec3d(0.0, 0.0, 1.0);
+		break;
+	case StandardView::Right:
+		eye = center + osg::Vec3d(distance, 0.0, 0.0);
+		up = osg::Vec3d(0.0, 0.0, 1.0);
+		break;
+	case StandardView::Left:
+		eye = center + osg::Vec3d(-distance, 0.0, 0.0);
+		up = osg::Vec3d(0.0, 0.0, 1.0);
+		break;
+	}
+
+	if (manipulator)
+	{
+		manipulator->setHomePosition(eye, center, up, false);
+		view->home();
+	}
+	else
+	{
+		view->getCamera()->setViewMatrixAsLookAt(eye, center, up);
+	}
+
+	this->update();
+}
+
+void OSGWidget::centerView()
+{
+	onHome();
 	this->update();
 }
 
@@ -583,27 +689,7 @@ int OSGWidget::pickModelIdAt(const QPoint& pos) const
 
 osg::Node* OSGWidget::findNodeByModelId(int modelId) const
 {
-	osgViewer::View* view = viewer_->getView(0);
-	if (!view)
-		return nullptr;
-
-	osg::Node* scene = view->getSceneData();
-	osg::Group* root = scene ? scene->asGroup() : nullptr;
-	if (!root)
-		return nullptr;
-
-	for (unsigned int i = 0; i < root->getNumChildren(); ++i)
-	{
-		osg::Node* node = root->getChild(i);
-		if (!node)
-			continue;
-
-		int entryId = -1;
-		if (node->getUserValue("modelId", entryId) && entryId == modelId)
-			return node;
-	}
-
-	return nullptr;
+	return findByModelIdRecursive(m_sceneContent.get(), modelId);
 }
 
 void OSGWidget::applyHighlight(osg::Node* node)
@@ -646,3 +732,54 @@ void OSGWidget::clearHighlight()
 	m_previousMaterial = nullptr;
 	m_selectedNodeHadMaterial = false;
 }
+
+void OSGWidget::drawFloatingAxes(QPainter& painter) const
+{
+	osgViewer::View* view = viewer_->getView(0);
+	if (!view || !view->getCamera())
+		return;
+
+	osg::Vec3d eye, center, up;
+	view->getCamera()->getViewMatrixAsLookAt(eye, center, up);
+	osg::Vec3d forward = center - eye;
+	if (forward.length2() < 1e-12)
+		return;
+	forward.normalize();
+
+	osg::Vec3d right = forward ^ up;
+	if (right.length2() < 1e-12)
+		return;
+	right.normalize();
+
+	osg::Vec3d cameraUp = right ^ forward;
+	if (cameraUp.length2() < 1e-12)
+		return;
+	cameraUp.normalize();
+
+	const int margin = 18;
+	const QPoint centerPt(width() - margin - 56, height() - margin - 56);
+	const int axisLength = 42;
+
+	painter.setPen(Qt::NoPen);
+	painter.setBrush(QColor(255, 255, 255, 210));
+	painter.drawEllipse(centerPt, 56, 56);
+
+	auto drawAxis = [&](const osg::Vec3d& worldDir, const QColor& color, const QString& label) {
+		const double sx = worldDir * right;
+		const double sy = worldDir * cameraUp;
+		const QPoint endPt(centerPt.x() + static_cast<int>(sx * axisLength),
+			centerPt.y() - static_cast<int>(sy * axisLength));
+
+		QPen pen(color, 2.5);
+		painter.setPen(pen);
+		painter.drawLine(centerPt, endPt);
+		painter.setBrush(color);
+		painter.drawEllipse(endPt, 3, 3);
+		painter.drawText(endPt + QPoint(5, -4), label);
+	};
+
+	drawAxis(osg::Vec3d(1.0, 0.0, 0.0), QColor(220, 60, 60), QStringLiteral("X"));
+	drawAxis(osg::Vec3d(0.0, 1.0, 0.0), QColor(50, 180, 70), QStringLiteral("Y"));
+	drawAxis(osg::Vec3d(0.0, 0.0, 1.0), QColor(60, 110, 235), QStringLiteral("Z"));
+}
+

@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QString>
+#include <QResizeEvent>
 #include "OSGWidget.h"
 #include "DataExchange.h"
 #include "ShapePool.h"
@@ -33,9 +34,13 @@ private:
 	void onDeleteModelRequested(int modelId);
 	void registerModel(int modelId, const QString& displayName, bool hasOccShape);
 	void tagNodeWithModelId(int modelId);
+	void createViewControlPanel();
+	void positionViewControlPanel();
+	void resizeEvent(QResizeEvent* event) override;
 private:
 	OSGWidget* m_osgWidget;
 	ProjectTreeDock* m_projectTreeDock;
+	QWidget* m_viewControlPanel{ nullptr };
 	DataExchangeOptions m_dataExchangeOptions;
 	ShapePool m_shapePool;
 	Ui::MainWindow* ui;
